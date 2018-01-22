@@ -14,6 +14,7 @@ public class Solution {
 		double sigma2;
 		double step;
 		
+		
 
 		Scanner sc = new Scanner(System.in);
 		boolean flaga = true;
@@ -26,7 +27,17 @@ public class Solution {
 			sigma2 = Double.parseDouble(sc.nextLine());
 			System.out.println("Wybierz krok:");
 			step = Double.parseDouble(sc.nextLine());
-			liczPstwo(sigma1, sigma2, step, modulation);
+			data tmp2=null;
+			tmp2 = liczPstwo(sigma1, sigma2, step, modulation);
+
+			//wykreslmy wykres
+			XYSeriesDemo chart = new XYSeriesDemo("BER-MER", tmp2.MERdB,tmp2.BER, tmp2.modulation);
+			
+			chart.pack();
+			//RefineryUtilities.centerFrameOnScreen(chart);
+			chart.setVisible(true);
+			
+			
 			System.out.println("Wcisnij 1 aby kontynuowaæ, 0 aby wyjsc");
 			int tmp = Integer.parseInt(sc.nextLine());
 			if (tmp == 0)
@@ -35,7 +46,7 @@ public class Solution {
 	}
 	
 	
-	public static void liczPstwo(double _sigma1, double _sigma2, double _step, int _modulation)
+	public static data liczPstwo(double _sigma1, double _sigma2, double _step, int _modulation)
 	{
 		int N = (int) Math.sqrt(_modulation);
 		double mx, my; // wartosc oczekiwana
@@ -71,9 +82,10 @@ public class Solution {
 				// ustawiamy wartosc oczekiwana (przesuwanie wierzcholka w rozne
 				// sektory konstelacji)
 				
-				mx = i + 0.5;
-				my =j + 0.5;
-			System.out.println("Wartosc oczekiwana po X:" + mx + ". Wartosc oczekiwana po Y:" + my + ".");
+				
+				mx = 2*(i + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				my = 2*(j + 0.5)/Math.sqrt(((double)(_modulation))/16);
+		//	System.out.println("Wartosc oczekiwana po X:" + mx + ". Wartosc oczekiwana po Y:" + my + ".");
 
 				// Policzmy blad ze symbol nie trafi do danego wybranego
 				// sektora, czyli suma 15 prawdopodobienstw ze trafi do innego sektora
@@ -83,12 +95,12 @@ public class Solution {
 					for (int x = 0; x <N; x++) {
 
 					//	System.out.println("Liczymy pstwo bledu dla sektora: "+ (y * N + x));
-						x1 =  x;// granice calkowania, czyli granice sektora
-						x2 = x + 1;
-						y1 = y;
-						y2 = y + 1;
-						System.out.println("granice calkowania po x: " + x1	+ " " + x2);
-						System.out.println("granice calkowania po y: " + y1	+ " " + y2);
+						x1 =  2*x/Math.sqrt(((double)(_modulation))/16);
+						x2 = 2*(x + 1)/Math.sqrt(((double)(_modulation))/16);
+						y1 = 2*y/Math.sqrt(((double)(_modulation))/16);
+						y2 = 2*(y + 1)/Math.sqrt(((double)(_modulation))/16);
+						//System.out.println("granice calkowania po x: " + x1	+ " " + x2);
+						//System.out.println("granice calkowania po y: " + y1	+ " " + y2);
 
 						// policzmy pstwo po x -> P(x1<mx<x2)
 						d = new NormalDistribution(mx, _sigma1); // wartosc oczekiwana x
@@ -127,9 +139,11 @@ public class Solution {
 		
 		for (int j = 0; j < N; j++)
 			for (int i = 0; i < N; i++) {
-				mx = i + 0.5;
-				my = j + 0.5;
+				mx = 2*(i + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				my = 2*(j + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				System.out.println("X: "+mx+" Y: "+my);
 			licznik[cnt] = licznik[cnt]+ ((Math.pow(mx,2) + Math.pow(my,2))/_modulation);
+			
 			}
 		
 		
@@ -141,11 +155,9 @@ public class Solution {
 	}
 		
 	
-		//wykreslmy wykres
-		XYSeriesDemo chart = new XYSeriesDemo("BER-MER", MERdB,BER, _modulation);
-		chart.pack();
-		//RefineryUtilities.centerFrameOnScreen(chart);
-		chart.setVisible(true);
+		data tmpData = new data(BER,MERdB,_modulation);
+		
+		return tmpData;
 		
 
 	}
