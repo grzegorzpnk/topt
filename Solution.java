@@ -9,7 +9,7 @@ public class Solution {
 
 	public static void main(String[] args) {
 
-		int modulation = 16;
+		int modulation=0;
 		double sigma1;
 		double sigma2;
 		double step;
@@ -18,6 +18,8 @@ public class Solution {
 		Scanner sc = new Scanner(System.in);
 		boolean flaga = true;
 		while (flaga) {
+			System.out.println("Wybierz wartosciowosc modulacji:");
+			modulation = Integer.parseInt(sc.nextLine());
 			System.out.println("Wybierz pierwsze odchylenie standardowe:");
 			sigma1 = Double.parseDouble(sc.nextLine());
 			System.out.println("Wybierz drugie odchylenie standardowe:");
@@ -37,16 +39,21 @@ public class Solution {
 	{
 		int N = (int) Math.sqrt(_modulation);
 		double mx, my; // wartosc oczekiwana
-		int x1, x2, y1, y2; // granice calkowania
+		double x1, x2, y1, y2; // granice calkowania
 		NormalDistribution d;
 		double constelation[][] = new double[N][N]; // tablica na Pstwa ze sybmol zdekoduje w innym sektorze niz w tym w ktorym jest max
 		double PerrorX, PerrorY; // zmienne do calkowania
 		double sum;// zmienna do sumowania pstwienstw ze wpadnie do innego
 		// sektora
-		double MER[]=new double[(int) ((_sigma2-_sigma1)/_step +1)];
-		double licznik[]=new double[(int) ((_sigma2-_sigma1)/_step +1)];
-		double mianownik[]=new double[(int) ((_sigma2-_sigma1)/_step +1)];
-		double BER[]=new double[(int) ((_sigma2-_sigma1)/_step +1)];
+		
+		int tmp = (int) Math.ceil((_sigma2-_sigma1)/_step) +1;
+		System.out.println(tmp);
+		double MER[]=new double[(int) (Math.round((_sigma2-_sigma1)/_step ))+1];
+		double MERdB[]=new double[(int) (Math.round((_sigma2-_sigma1)/_step ))+1];
+		double licznik[]=new double[(int) (Math.round((_sigma2-_sigma1)/_step ))+1];
+		double mianownik[]=new double[(int) (Math.round((_sigma2-_sigma1)/_step ))+1];
+		double BER[]=new double[(int) (Math.round((_sigma2-_sigma1)/_step ))+1];
+		
 		double symbolError;
 		double bitsError;
 		int bitsPerSymbol;
@@ -63,9 +70,10 @@ public class Solution {
 			for (int i = 0; i < N; i++) {
 				// ustawiamy wartosc oczekiwana (przesuwanie wierzcholka w rozne
 				// sektory konstelacji)
+				
 				mx = i + 0.5;
-				my = j + 0.5;
-			//	System.out.println("Wartosc oczekiwana po X:" + mx + ". Wartosc oczekiwana po Y:" + my + ".");
+				my =j + 0.5;
+			System.out.println("Wartosc oczekiwana po X:" + mx + ". Wartosc oczekiwana po Y:" + my + ".");
 
 				// Policzmy blad ze symbol nie trafi do danego wybranego
 				// sektora, czyli suma 15 prawdopodobienstw ze trafi do innego sektora
@@ -75,12 +83,12 @@ public class Solution {
 					for (int x = 0; x <N; x++) {
 
 					//	System.out.println("Liczymy pstwo bledu dla sektora: "+ (y * N + x));
-						x1 = x;// granice calkowania, czyli granice sektora
+						x1 =  x;// granice calkowania, czyli granice sektora
 						x2 = x + 1;
 						y1 = y;
 						y2 = y + 1;
-				//		System.out.println("granice calkowania po x: " + x1	+ " " + x2);
-				//		System.out.println("granice calkowania po y: " + y1	+ " " + y2);
+						System.out.println("granice calkowania po x: " + x1	+ " " + x2);
+						System.out.println("granice calkowania po y: " + y1	+ " " + y2);
 
 						// policzmy pstwo po x -> P(x1<mx<x2)
 						d = new NormalDistribution(mx, _sigma1); // wartosc oczekiwana x
@@ -112,7 +120,7 @@ public class Solution {
 		BER[cnt] = 0;
 		for (int y = 0; y < N; y++)
 			for (int x = 0; x < N; x++)
-				BER[cnt] += constelation[x][y]/_modulation; //bo okresla ile symboli(bitów) odbierzemy w danej konstelacji niepoprawnie, suma po jednostkowych bledach(dla kazdego sektoru) *1/wartosciowosc modulacji
+				BER[cnt] = BER[cnt] + (constelation[x][y]/_modulation); //bo okresla ile symboli(bitów) odbierzemy w danej konstelacji niepoprawnie, suma po jednostkowych bledach(dla kazdego sektoru) *1/wartosciowosc modulacji
 		
 		
 		//policzmy MER
@@ -121,20 +129,22 @@ public class Solution {
 			for (int i = 0; i < N; i++) {
 				mx = i + 0.5;
 				my = j + 0.5;
-		
-			licznik[cnt] = licznik[cnt]+ (Math.pow(mx,2) + Math.pow(my,2));
-			mianownik[cnt] = _modulation*2*Math.pow(_sigma1,2);
+			licznik[cnt] = licznik[cnt]+ ((Math.pow(mx,2) + Math.pow(my,2))/_modulation);
 			}
+		
+		
+		mianownik[cnt] = _modulation*2*Math.pow(_sigma1,2);
 		MER[cnt]= licznik[cnt]/mianownik[cnt];
-		System.out.println("Dla modulacji: "+_modulation+"QAM BER to: "+BER[cnt]+ " a MER to: "+MER[cnt]);
+		MERdB[cnt]=10.0f * Math.log10(MER[cnt]);
+		System.out.println("Dla modulacji: "+_modulation+"QAM BER to: "+BER[cnt]+ " a MER to: "+MERdB[cnt]+" dB");
 		cnt++;
 	}
 		
 	
 		//wykreslmy wykres
-		XYSeriesDemo chart = new XYSeriesDemo("BER-MER", MER,BER, _modulation);
+		XYSeriesDemo chart = new XYSeriesDemo("BER-MER", MERdB,BER, _modulation);
 		chart.pack();
-		RefineryUtilities.centerFrameOnScreen(chart);
+		//RefineryUtilities.centerFrameOnScreen(chart);
 		chart.setVisible(true);
 		
 
