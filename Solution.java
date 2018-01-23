@@ -1,6 +1,10 @@
 package topt;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jfree.ui.RefineryUtilities;
@@ -13,31 +17,47 @@ public class Solution {
 		double sigma1;
 		double sigma2;
 		double step;
+		final ArrayList<data> dataList = new ArrayList<data>();
 		
 		
 
 		Scanner sc = new Scanner(System.in);
 		boolean flaga = true;
 		while (flaga) {
-			System.out.println("Wybierz wartosciowosc modulacji:");
-			modulation = Integer.parseInt(sc.nextLine());
+			//System.out.println("Wybierz wartosciowosc modulacji:");
+			//modulation = Integer.parseInt(sc.nextLine());
 			System.out.println("Wybierz pierwsze odchylenie standardowe:");
 			sigma1 = Double.parseDouble(sc.nextLine());
 			System.out.println("Wybierz drugie odchylenie standardowe:");
 			sigma2 = Double.parseDouble(sc.nextLine());
 			System.out.println("Wybierz krok:");
 			step = Double.parseDouble(sc.nextLine());
-			data tmp2=null;
-			tmp2 = liczPstwo(sigma1, sigma2, step, modulation);
-
+			data temporary=null;
+			temporary = liczPstwo(sigma1, sigma2, step, 4);
+			dataList.add(temporary);
+			
+			temporary = liczPstwo(sigma1, sigma2, step, 16);
+			dataList.add(temporary);
+			
+			temporary = liczPstwo(sigma1, sigma2, step, 64);
+			dataList.add(temporary);
+			
+			
+			SwingUtilities.invokeLater(new Runnable() {
+		        @Override
+		        public void run() {
+		            new XY(dataList).setVisible(true);
+		        }
+		    });
+		/*
 			//wykreslmy wykres
-			XYSeriesDemo chart = new XYSeriesDemo("BER-MER", tmp2.MERdB,tmp2.BER, tmp2.modulation);
+			XYSeriesDemo chart = new XYSeriesDemo("BER-MER", temporary.MERdB,temporary.BER, 16);
 			
 			chart.pack();
-			//RefineryUtilities.centerFrameOnScreen(chart);
+			RefineryUtilities.centerFrameOnScreen(chart);
 			chart.setVisible(true);
 			
-			
+		*/	
 			System.out.println("Wcisnij 1 aby kontynuowaæ, 0 aby wyjsc");
 			int tmp = Integer.parseInt(sc.nextLine());
 			if (tmp == 0)
@@ -83,8 +103,8 @@ public class Solution {
 				// sektory konstelacji)
 				
 				
-				mx = 2*(i + 0.5)/Math.sqrt(((double)(_modulation))/16);
-				my = 2*(j + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				mx = (i + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				my = (j + 0.5)/Math.sqrt(((double)(_modulation))/16);
 		//	System.out.println("Wartosc oczekiwana po X:" + mx + ". Wartosc oczekiwana po Y:" + my + ".");
 
 				// Policzmy blad ze symbol nie trafi do danego wybranego
@@ -95,10 +115,10 @@ public class Solution {
 					for (int x = 0; x <N; x++) {
 
 					//	System.out.println("Liczymy pstwo bledu dla sektora: "+ (y * N + x));
-						x1 =  2*x/Math.sqrt(((double)(_modulation))/16);
-						x2 = 2*(x + 1)/Math.sqrt(((double)(_modulation))/16);
-						y1 = 2*y/Math.sqrt(((double)(_modulation))/16);
-						y2 = 2*(y + 1)/Math.sqrt(((double)(_modulation))/16);
+						x1 =  x/Math.sqrt(((double)(_modulation))/16);
+						x2 = (x + 1)/Math.sqrt(((double)(_modulation))/16);
+						y1 = y/Math.sqrt(((double)(_modulation))/16);
+						y2 = (y + 1)/Math.sqrt(((double)(_modulation))/16);
 						//System.out.println("granice calkowania po x: " + x1	+ " " + x2);
 						//System.out.println("granice calkowania po y: " + y1	+ " " + y2);
 
@@ -106,6 +126,7 @@ public class Solution {
 						d = new NormalDistribution(mx, _sigma1); // wartosc oczekiwana x
 						PerrorX = d.cumulativeProbability(x2) - d.cumulativeProbability(x1);
 				//		System.out.println("pstwo bledu po X:" +PerrorX);
+						
 
 						// policzmy pstwo po y P(y1<my<y2)
 						d = new NormalDistribution(my, _sigma1);
@@ -132,18 +153,17 @@ public class Solution {
 		BER[cnt] = 0;
 		for (int y = 0; y < N; y++)
 			for (int x = 0; x < N; x++)
-				BER[cnt] = BER[cnt] + (constelation[x][y]/_modulation); //bo okresla ile symboli(bitów) odbierzemy w danej konstelacji niepoprawnie, suma po jednostkowych bledach(dla kazdego sektoru) *1/wartosciowosc modulacji
+				BER[cnt] = BER[cnt] + (constelation[x][y]/(double)_modulation); //bo okresla ile symboli(bitów) odbierzemy w danej konstelacji niepoprawnie, suma po jednostkowych bledach(dla kazdego sektoru) *1/wartosciowosc modulacji
 		
 		
 		//policzmy MER
 		
 		for (int j = 0; j < N; j++)
 			for (int i = 0; i < N; i++) {
-				mx = 2*(i + 0.5)/Math.sqrt(((double)(_modulation))/16);
-				my = 2*(j + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				mx = (i + 0.5)/Math.sqrt(((double)(_modulation))/16);
+				my = (j + 0.5)/Math.sqrt(((double)(_modulation))/16);
 				System.out.println("X: "+mx+" Y: "+my);
 			licznik[cnt] = licznik[cnt]+ ((Math.pow(mx,2) + Math.pow(my,2))/_modulation);
-			
 			}
 		
 		
